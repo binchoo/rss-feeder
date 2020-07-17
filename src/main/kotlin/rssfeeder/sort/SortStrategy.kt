@@ -3,11 +3,11 @@ package rssfeeder.sort
 import org.jsoup.nodes.Element
 import org.jsoup.select.Elements
 
-abstract class SortStrategy<CriterionType: Comparable<CriterionType>>(val ascending: Boolean) {
-    abstract val sortCriterion: SortCriterion<CriterionType>
+abstract class SortStrategy<CriterionType: Comparable<CriterionType>>(val isAscending: Boolean) {
+    protected abstract val sortCriterion: SortCriterion<CriterionType>
 
     fun sort(elements: Elements) {
-        if (ascending) {
+        if (isAscending) {
             elements.sortBy {element->
                 criterionValueOf(element)
             }
@@ -22,7 +22,7 @@ abstract class SortStrategy<CriterionType: Comparable<CriterionType>>(val ascend
         return sortCriterion.criterionValueOf(element)
     }
 
-    class AttrValue(val attrKey: String, ascending: Boolean = true): SortStrategy<String>(ascending) {
+    class AttrValue(private val attrKey: String, ascending: Boolean = true): SortStrategy<String>(ascending) {
         override val sortCriterion = object: SortCriterion<String> {
             override fun criterionValueOf(element: Element): String {
                 return element.attr(attrKey)
