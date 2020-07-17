@@ -30,7 +30,7 @@ abstract class SortStrategy<CriterionType: Comparable<CriterionType>>(val isAsce
         }
     }
 
-    class ClassName(ascending: Boolean = true): SortStrategy<String>(ascending) {
+    class ClassName(isAscending: Boolean = true): SortStrategy<String>(isAscending) {
         override val sortCriterion = object: SortCriterion<String> {
             override fun criterionValueOf(element: Element): String {
                 return element.className()
@@ -38,7 +38,7 @@ abstract class SortStrategy<CriterionType: Comparable<CriterionType>>(val isAsce
         }
     }
 
-    class TagName(ascending: Boolean = true): SortStrategy<String>(ascending) {
+    class TagName(isAscending: Boolean = true): SortStrategy<String>(isAscending) {
         override val sortCriterion = object: SortCriterion<String> {
             override fun criterionValueOf(element: Element): String {
                 return element.tagName()
@@ -46,7 +46,7 @@ abstract class SortStrategy<CriterionType: Comparable<CriterionType>>(val isAsce
         }
     }
 
-    class ChildrenCount(ascending: Boolean = true): SortStrategy<Int>(ascending) {
+    class ChildrenCount(isAscending: Boolean = true): SortStrategy<Int>(isAscending) {
         override val sortCriterion = object: SortCriterion<Int> {
             override fun criterionValueOf(element: Element): Int {
                 return element.children().size
