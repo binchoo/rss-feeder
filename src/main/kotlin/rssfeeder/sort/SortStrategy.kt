@@ -9,16 +9,16 @@ abstract class SortStrategy<CriterionType: Comparable<CriterionType>>(val isAsce
     fun sort(elements: Elements) {
         if (isAscending) {
             elements.sortBy {element->
-                criterionValueOf(element)
+                __criterionValueOf(element)
             }
         } else {
             elements.sortByDescending {element->
-                criterionValueOf(element)
+                __criterionValueOf(element)
             }
         }
     }
 
-    private fun criterionValueOf(element: Element): CriterionType {
+    private fun __criterionValueOf(element: Element): CriterionType {
         return sortCriterion.criterionValueOf(element)
     }
 
@@ -26,6 +26,14 @@ abstract class SortStrategy<CriterionType: Comparable<CriterionType>>(val isAsce
         override val sortCriterion = object: SortCriterion<String> {
             override fun criterionValueOf(element: Element): String {
                 return element.attr(attrKey)
+            }
+        }
+    }
+
+    class ChildrenCount(isAscending: Boolean = true): SortStrategy<Int>(isAscending) {
+        override val sortCriterion = object: SortCriterion<Int> {
+            override fun criterionValueOf(element: Element): Int {
+                return element.children().size
             }
         }
     }
@@ -46,10 +54,26 @@ abstract class SortStrategy<CriterionType: Comparable<CriterionType>>(val isAsce
         }
     }
 
-    class ChildrenCount(isAscending: Boolean = true): SortStrategy<Int>(isAscending) {
+    class Text(isAscending: Boolean = true): SortStrategy<String>(isAscending) {
+        override val sortCriterion = object: SortCriterion<String> {
+            override fun criterionValueOf(element: Element): String {
+                return element.text()
+            }
+        }
+    }
+
+    class TextLength(isAscending: Boolean = true): SortStrategy<Int>(isAscending) {
         override val sortCriterion = object: SortCriterion<Int> {
             override fun criterionValueOf(element: Element): Int {
-                return element.children().size
+                return element.text().length
+            }
+        }
+    }
+
+    class HtmlLength(isAscending: Boolean = true): SortStrategy<Int>(isAscending) {
+        override val sortCriterion = object: SortCriterion<Int> {
+            override fun criterionValueOf(element: Element): Int {
+                return element.html().length
             }
         }
     }
