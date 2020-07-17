@@ -7,7 +7,8 @@ import rssfeeder.sort.SortStrategy
 abstract class RssReference(protected val document: Document) {
     protected var cssQuery: String = QUERY_FOR_ALL
     protected var elementsCache: HashMap<String, Elements> = HashMap()
-    protected var sortStrategy: SortStrategy<*>? = null
+    var sortStrategy: SortStrategy<*>? = null
+        protected set
 
     abstract fun childOf(cssQuery: String): RssReference
 
