@@ -18,7 +18,7 @@ abstract class SortStrategy<CriterionType: Comparable<CriterionType>>(val isAsce
         }
     }
 
-    fun criterionValueOf(element: Element): CriterionType {
+    private fun criterionValueOf(element: Element): CriterionType {
         return sortCriterion.criterionValueOf(element)
     }
 
