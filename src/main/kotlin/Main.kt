@@ -4,6 +4,7 @@ import rssfeeder.sort.SortStrategy
 fun main() {
     rssFeederNarrowingQuery()
     rssFeederSortingByAttrHrefValue()
+    rssFeederSortingByTextAndTextLength()
     rssFeederCompoundedSortingStrategy()
 }
 
@@ -35,6 +36,23 @@ fun rssFeederSortingByAttrHrefValue() {
     println("<<rssFeederSortingByAttrHrefValue>>")
     elems.forEach {
         println(it.attr("href"))
+    }
+}
+
+fun rssFeederSortingByTextAndTextLength() {
+    val feeder = RssFeeder.getInstance("https://en.wikipedia.org")
+    val rssRef = feeder.getReference().childOf("li").childOf("b")
+    val strategyText = SortStrategy.Text()
+    val strategyTextLength = SortStrategy.TextLength()
+
+    println("<<rssFeederSortingByText>>")
+    rssRef.enableSort(strategyText).elems().forEach {
+        println(it.text())
+    }
+
+    println("<<rssFeederSortingByTextLength>>")
+    rssRef.enableSort(strategyTextLength).elems().forEach {
+        println(it.text())
     }
 }
 
