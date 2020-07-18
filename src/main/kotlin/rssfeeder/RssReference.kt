@@ -46,7 +46,12 @@ class RssReference(private var document: Document,
         return this
     }
 
-    fun elems(forceEval: Boolean = false): Elements {
+    /**
+     * @param forceEval whether or not to force the lazy evaluation. Default true.
+     * @return Elements, read from cache if forceEval=false, else newly evaluated.
+     * @author binchoo
+     */
+    fun elems(forceEval: Boolean = true): Elements {
         return evaluateQueue(evalQueue, forceEval)
     }
 
@@ -76,8 +81,9 @@ class RssReference(private var document: Document,
         private val QUERY_DEFAULT = ""
 
         private fun evaluateQueue(referenceEvalQueue: Queue<RssReference>, forceEval: Boolean): Elements {
-            var subDocument = referenceEvalQueue.first().document
             val last = referenceEvalQueue.last()
+            var subDocument = referenceEvalQueue.first().document
+
             referenceEvalQueue.forEach { ref ->
                 if (ref == last || ref.hasSortStrategy()) {
                     ref.document = subDocument
