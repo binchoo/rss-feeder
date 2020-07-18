@@ -6,6 +6,7 @@ fun main() {
     rssFeederSortingByAttrHrefValue()
     rssFeederSortingByTextAndTextLength()
     rssFeederCompoundedSortingStrategy()
+    rssFeederEvalListValidation()
 }
 
 fun rssFeederNarrowingQuery() {
@@ -70,4 +71,14 @@ fun rssFeederCompoundedSortingStrategy() {
     elems.forEach {
         println(it.attr("href"))
     }
+}
+
+fun rssFeederEvalListValidation() {
+    val feeder = RssFeeder.getInstance("https://en.wikipedia.org")
+    println("ref's evalQueue")
+    val ref = feeder.getReference().childOf("li")
+    println("ref1's evalQueue")
+    val ref1 = ref.childOf("b")
+    println("ref2's evalQueue")
+    val ref2 = ref.childOf("a")
 }
