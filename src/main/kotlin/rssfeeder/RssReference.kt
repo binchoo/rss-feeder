@@ -35,12 +35,12 @@ abstract class RssReference(protected val document: Document) {
     fun isEvaluated(): Boolean =
         elementsCache[cssQuery] != null
 
-    fun enableSort(sortStrategy: SortStrategy<*>): RssReference {
+    fun sortBy(sortStrategy: SortStrategy<*>): RssReference {
         this.sortStrategy = sortStrategy
         return this
     }
 
-    fun disableSort(): RssReference {
+    fun cancelSort(): RssReference {
         this.sortStrategy = null
         return this
     }

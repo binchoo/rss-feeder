@@ -31,7 +31,7 @@ fun rssFeederSortingByAttrHrefValue() {
     val rssRef = feeder.getReference().childOf("li").childOf("b").childOf("a")
 
     val strategyHrefValueDescending = SortStrategy.AttrValue("href", false)
-    val elems = rssRef.enableSort(strategyHrefValueDescending).elems()
+    val elems = rssRef.sortBy(strategyHrefValueDescending).elems()
 
     println("<<rssFeederSortingByAttrHrefValue>>")
     elems.forEach {
@@ -46,12 +46,12 @@ fun rssFeederSortingByTextAndTextLength() {
     val strategyTextLength = SortStrategy.TextLength()
 
     println("<<rssFeederSortingByText>>")
-    rssRef.enableSort(strategyText).elems().forEach {
+    rssRef.sortBy(strategyText).elems().forEach {
         println(it.text())
     }
 
     println("<<rssFeederSortingByTextLength>>")
-    rssRef.enableSort(strategyTextLength).elems().forEach {
+    rssRef.sortBy(strategyTextLength).elems().forEach {
         println(it.text())
     }
 }
@@ -61,9 +61,9 @@ fun rssFeederCompoundedSortingStrategy() {
     val feeder = RssFeeder.getInstance("https://en.wikipedia.org")
     val strategyChilrentCount = SortStrategy.ChildrenCount()
     val strategyHrefValueDescending = SortStrategy.AttrValue("href", false)
-    val rssRef = feeder.getReference("li").enableSort(strategyChilrentCount)
+    val rssRef = feeder.getReference("li").sortBy(strategyChilrentCount)
         .childOf("b")
-        .childOf("a").enableSort(strategyHrefValueDescending)
+        .childOf("a").sortBy(strategyHrefValueDescending)
     val elems = rssRef.elems()
 
     println("<<rssFeederCompoundedSortingStrategy>>")
