@@ -12,27 +12,29 @@ fun main() {
 fun rssFeederNarrowingQuery() {
 
     val feeder = RssFeeder.getInstance("https://en.wikipedia.org")
-    val rssRef = feeder.getReference().childOf("li").childOf("b").childOf("a")
+    val rssRef = feeder.getReference().child("li").child("b").child("a")
 
     println("<<rssFeederNarrowingQuery>>")
 
-    println(rssRef.isConstrained())
+    println(rssRef.isQuerySpecified())
     println(rssRef.isEvaluated())
     println(rssRef.elems().count().toString() + "개")
-    println(rssRef.isConstrained())
+    println(rssRef.isQuerySpecified())
     println(rssRef.isEvaluated())
 
-    rssRef.elems().forEach {
+    val elems = rssRef.elems()
+    elems.forEach {
         println(it.parent().html())
     }
+    println("count = ${elems.count()}")
 }
 
 fun rssFeederSortingByAttrHrefValue() {
     val feeder = RssFeeder.getInstance("https://en.wikipedia.org")
-    val rssRef = feeder.getReference().childOf("li").childOf("b").childOf("a")
+    val rssRef = feeder.getReference().child("li").child("b").child("a")
 
     val strategyHrefValueDescending = SortStrategy.AttrValue("href", false)
-    val elems = rssRef.sortBy(strategyHrefValueDescending).elems()
+    val elems = rssRef.sort(strategyHrefValueDescending).elems()
 
     println("<<rssFeederSortingByAttrHrefValue>>")
     elems.forEach {
@@ -42,43 +44,45 @@ fun rssFeederSortingByAttrHrefValue() {
 
 fun rssFeederSortingByTextAndTextLength() {
     val feeder = RssFeeder.getInstance("https://en.wikipedia.org")
-    val rssRef = feeder.getReference().childOf("li").childOf("b")
+    val rssRef = feeder.getReference().child("li").child("b")
     val strategyText = SortStrategy.Text()
     val strategyTextLength = SortStrategy.TextLength()
 
     println("<<rssFeederSortingByText>>")
-    rssRef.sortBy(strategyText).elems().forEach {
+    rssRef.sort(strategyText).elems().forEach {
         println(it.text())
     }
 
     println("<<rssFeederSortingByTextLength>>")
-    rssRef.sortBy(strategyTextLength).elems().forEach {
+    rssRef.sort(strategyTextLength).elems().forEach {
         println(it.text())
     }
 }
 
 //TODO: Implement compounded sorting strategy feature.
 fun rssFeederCompoundedSortingStrategy() {
-    val feeder = RssFeeder.getInstance("https://en.wikipedia.org")
-    val strategyChilrentCount = SortStrategy.ChildrenCount()
+    val strategyChildrenCount = SortStrategy.ChildrenCount()
     val strategyHrefValueDescending = SortStrategy.AttrValue("href", false)
-    val rssRef = feeder.getReference("li").sortBy(strategyChilrentCount)
-        .childOf("b")
-        .childOf("a").sortBy(strategyHrefValueDescending)
+
+    val feeder = RssFeeder.getInstance("https://en.wikipedia.org")
+    val rssRef = feeder.getReference("li")
+        .child("b").sort(strategyChildrenCount)
+        .child("a").sort(strategyHrefValueDescending)
     val elems = rssRef.elems()
 
     println("<<rssFeederCompoundedSortingStrategy>>")
     elems.forEach {
-        println(it.attr("href"))
+        println(it.html())
     }
+    println("count = ${elems.count()}")
 }
 
 fun rssFeederEvalListValidation() {
     val feeder = RssFeeder.getInstance("https://en.wikipedia.org")
     println("ref's evalQueue")
-    val ref = feeder.getReference().childOf("li")
+    val ref = feeder.getReference().child("li")
     println("ref1's evalQueue")
-    val ref1 = ref.childOf("b")
+    val ref1 = ref.child("b")
     println("ref2's evalQueue")
-    val ref2 = ref.childOf("a")
+    val ref2 = ref.child("a")
 }

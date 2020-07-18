@@ -4,49 +4,54 @@ import org.jsoup.nodes.Document
 import org.jsoup.select.Elements
 import rssfeeder.sort.SortStrategy
 import java.util.*
-import java.util.concurrent.BlockingQueue
 import kotlin.collections.HashMap
 
-abstract class RssReference(protected val document: Document, parent: RssReference?) {
-    protected var cssQuery: String = QUERY_FOR_ALL
-    protected var elementsCache: HashMap<String, Elements> = HashMap()
-    var sortStrategy: SortStrategy<*>? = null
-        protected set
+class RssReference(private var document: Document,
+                   private var cssQuery: String, parent: RssReference?) {
 
-    protected var evalQueue: LinkedList<RssReference> =
+    constructor(document: Document): this(document, QUERY_DEFAULT, null)
+    constructor(document: Document, cssQuery: String): this(document, cssQuery, null)
+
+    private var evalQueue: LinkedList<RssReference> =
         if (parent == null) {
-            LinkedList<RssReference>()
+            LinkedList()
         } else {
             parent.evalQueue.clone() as LinkedList<RssReference>
         }.also {evalQueue->
             evalQueue.add(this)
-            evalQueue.forEach {
-                print("[$it]")
-            }
-            println() //TODO: Remove when release.
         }
 
-    abstract fun childOf(cssQuery: String): RssReference
+    var sortStrategy: SortStrategy<*>? = null
+        private set
 
-    fun elems(): Elements {
-        val elems = elementsCache[cssQuery] ?: cacheNewElems(cssQuery)
-        sortStrategy?.sort(elems)
-        return elems
+    private var elementsCache: HashMap<String, Elements> = HashMap()
+
+    fun child(cssQuery: String): RssReference {
+        val childCssQuery = concatQuery(cssQuery)
+        return RssReference(document, childCssQuery, this)
     }
 
-    private fun cacheNewElems(cssQuery: String): Elements {
-        val elems =
-            if (isConstrained())
-                document.select(cssQuery)
-            else
-                document.allElements
-
-        elementsCache.put(cssQuery, elems)
-        return elems
+    private fun concatQuery(cssQuery: String): String {
+        return if (hasSortStrategy() || !isQuerySpecified()) cssQuery
+        else "${this.cssQuery} > $cssQuery"
     }
 
-    fun isConstrained(): Boolean =
-        !cssQuery.equals(QUERY_FOR_ALL)
+    fun sort(sortStrategy: SortStrategy<*>): RssReference {
+        this.sortStrategy = sortStrategy
+        return this
+    }
+
+    fun noSort(): RssReference {
+        this.sortStrategy = null
+        return this
+    }
+
+    fun elems(forceEval: Boolean = false): Elements {
+        return evaluateQueue(evalQueue, forceEval)
+    }
+
+    fun isQuerySpecified(): Boolean =
+        !cssQuery.equals(QUERY_DEFAULT)
 
     fun isEvaluated(): Boolean =
         elementsCache[cssQuery] != null
@@ -54,17 +59,44 @@ abstract class RssReference(protected val document: Document, parent: RssReferen
     fun hasSortStrategy(): Boolean =
         sortStrategy != null
 
-    fun sortBy(sortStrategy: SortStrategy<*>): RssReference {
-        this.sortStrategy = sortStrategy
-        return this
+    private fun writeToCache() {
+        val elems =
+            if (isQuerySpecified())
+                document.select(cssQuery)
+            else
+                document.allElements
+        sortStrategy?.sort(elems)
+        elementsCache.put(cssQuery, elems)
     }
 
-    fun cancelSort(): RssReference {
-        this.sortStrategy = null
-        return this
-    }
+    private fun readFromCache()
+            = elementsCache[cssQuery]!!
 
     companion object {
-        val QUERY_FOR_ALL = ""
+        private val QUERY_DEFAULT = ""
+
+        private fun evaluateQueue(referenceEvalQueue: Queue<RssReference>, forceEval: Boolean): Elements {
+            var subDocument = referenceEvalQueue.first().document
+            val last = referenceEvalQueue.last()
+            referenceEvalQueue.forEach { ref ->
+                if (ref == last || ref.hasSortStrategy()) {
+                    ref.document = subDocument
+                    subDocument = elems2doc(evaluateReference(ref, forceEval))
+                }
+            }
+            return last.readFromCache()
+        }
+
+        private fun evaluateReference(ref: RssReference, forceEval: Boolean): Elements {
+            if (!ref.isEvaluated() || forceEval)
+                ref.writeToCache()
+            return ref.readFromCache()
+        }
+
+        private fun elems2doc(elems: Elements): Document {
+            return Document("").also {
+                it.html(elems.html())
+            }
+        }
     }
 }

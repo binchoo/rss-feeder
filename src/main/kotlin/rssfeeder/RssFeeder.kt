@@ -8,12 +8,12 @@ class RssFeeder private constructor(val document: Document) {
     private lateinit var rssReference: RssReference
 
     fun getReference(): RssReference {
-        rssReference = RssFeedReference(document, RssReference.QUERY_FOR_ALL)
+        rssReference = RssReference(document)
         return rssReference
     }
 
     fun getReference(cssQuery: String): RssReference {
-        rssReference = RssFeedReference(document, cssQuery)
+        rssReference = RssReference(document, cssQuery)
         return rssReference
     }
 
