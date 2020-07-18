@@ -74,8 +74,8 @@ class RssReference(private var document: Document,
         elementsCache.put(cssQuery, elems)
     }
 
-    private fun readFromCache()
-            = elementsCache[cssQuery]!!
+    private fun readFromCache() =
+        elementsCache[cssQuery]!!
 
     companion object {
         private val QUERY_DEFAULT = ""
