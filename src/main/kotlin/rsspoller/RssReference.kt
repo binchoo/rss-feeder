@@ -48,7 +48,7 @@ class RssReference(private var document: Document,
 
     /**
      * @param forceEval whether or not to force the lazy evaluation. Default true.
-     * @return Elements, read from cache if forceEval=false, else newly evaluated.
+     * @return Elements newly evaluated if forceEval=true or isEvalutated()=false, else read from cache.
      * @author binchoo
      */
     @Synchronized
