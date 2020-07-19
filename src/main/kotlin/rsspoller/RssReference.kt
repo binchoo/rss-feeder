@@ -1,25 +1,25 @@
 package rsspoller
 
 import org.jsoup.nodes.Document
+import org.jsoup.Connection
 import org.jsoup.select.Elements
 import rsspoller.sort.SortStrategy
-import java.util.*
 import kotlin.collections.HashMap
 
-class RssReference(private var document: Document,
+class RssReference(private var connection: Connection,
                    private val cssQuery: String, val parent: RssReference?) {
 
-    constructor(document: Document): this(document, QUERY_DEFAULT, null)
-    constructor(document: Document, cssQuery: String): this(document, cssQuery, null)
+    constructor(connection: Connection): this(connection, QUERY_DEFAULT, null)
+    constructor(connection: Connection, cssQuery: String): this(connection, cssQuery, null)
 
-    private var evalQueue: LinkedList<RssReference> =
-        if (parent == null) {
-            LinkedList()
-        } else {
-            parent.evalQueue.clone() as LinkedList<RssReference>
-        }.also {evalQueue->
-            evalQueue.add(this)
-        }
+//    private var evalQueue: LinkedList<RssReference> =
+//        if (parent == null) {
+//            LinkedList()
+//        } else {
+//            parent.evalQueue.clone() as LinkedList<RssReference>
+//        }.also {evalQueue->
+//            evalQueue.add(this)
+//        }
 
     var sortStrategy: SortStrategy<*>? = null
         private set
@@ -28,7 +28,7 @@ class RssReference(private var document: Document,
 
     fun child(cssQuery: String): RssReference {
         val childCssQuery = concatQuery(cssQuery)
-        return RssReference(document, childCssQuery, this)
+        return RssReference(connection, childCssQuery, this)
     }
 
     private fun concatQuery(cssQuery: String): String {
@@ -51,21 +51,35 @@ class RssReference(private var document: Document,
      * @return Elements newly evaluated if forceEval=true or isEvalutated()=false, else read from cache.
      * @author binchoo
      */
-    @Synchronized
     fun elems(forceEval: Boolean = true): Elements {
-        return evaluateQueue(evalQueue, forceEval)
+        evaluate(forceEval)
+        return readCacheNonNull()
     }
 
-    fun isQuerySpecified(): Boolean =
-        !cssQuery.equals(QUERY_DEFAULT)
+    @Synchronized
+    fun evaluate(forceEval: Boolean) {
+        if (!isEvaluated() || forceEval) {
+            parseMyDocument(
+                if (parent == null) {
+                    lazyConnection()
+                } else {
+                    parent.evaluate(forceEval)
+                    parent.asDocument()
+            })
+        }
+    }
 
-    fun isEvaluated(): Boolean =
-        elementsCache[cssQuery] != null
+    fun lazyConnection(): Document {
+        return connection.get()
+    }
 
-    fun hasSortStrategy(): Boolean =
-        sortStrategy != null
+    private fun asDocument(): Document {
+        return Document("").also {
+            it.html(readCacheNonNull().html())
+        }
+    }
 
-    private fun writeToCache() {
+    private fun parseMyDocument(document: Document) {
         val elems =
             if (isQuerySpecified())
                 document.select(cssQuery)
@@ -78,35 +92,19 @@ class RssReference(private var document: Document,
     fun readFromCache() =
         elementsCache[cssQuery]
 
-    private fun readFromCacheNotNull() =
+    private fun readCacheNonNull() =
         readFromCache()!!
+
+    fun isQuerySpecified(): Boolean =
+        !cssQuery.equals(QUERY_DEFAULT)
+
+    fun isEvaluated(): Boolean =
+        elementsCache[cssQuery] != null
+
+    fun hasSortStrategy(): Boolean =
+        sortStrategy != null
 
     companion object {
         private val QUERY_DEFAULT = ""
-
-        private fun evaluateQueue(referenceEvalQueue: Queue<RssReference>, forceEval: Boolean): Elements {
-            val last = referenceEvalQueue.last()
-            var subDocument = referenceEvalQueue.first().document
-
-            referenceEvalQueue.forEach { ref ->
-                if (ref == last || ref.hasSortStrategy()) {
-                    ref.document = subDocument
-                    subDocument = elems2doc(evaluateReference(ref, forceEval))
-                }
-            }
-            return last.readFromCacheNotNull()
-        }
-
-        private fun evaluateReference(ref: RssReference, forceEval: Boolean): Elements {
-            if (!ref.isEvaluated() || forceEval)
-                ref.writeToCache()
-            return ref.readFromCacheNotNull()
-        }
-
-        private fun elems2doc(elems: Elements): Document {
-            return Document("").also {
-                it.html(elems.html())
-            }
-        }
     }
 }
