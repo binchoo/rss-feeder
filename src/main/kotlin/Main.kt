@@ -1,5 +1,7 @@
+import com.corndog.rssfeederrecyclerview.rssfeeder.RssPoller
 import org.jsoup.nodes.Element
 import rsspoller.RssFeed
+import rsspoller.RssReference
 import rsspoller.sort.SortCriterion
 import rsspoller.sort.SortStrategy
 
@@ -9,6 +11,7 @@ fun main() {
     test2()
     println("-*-*-*-*-*-*-*-*-*-*-*")
     test3()
+    testPolling()
 }
 
 fun test1() {
@@ -81,4 +84,16 @@ fun test3() {
     li_b_a_sorted.elems().forEach {
         println(it.text())
     }
+}
+
+fun testPolling() {
+    val feed = RssFeed.getInstance("https://en.wikipedia.org")
+    val ref = feed.getReference("li > b > a")
+    val poller = RssPoller(ref, 3000)
+    poller.addCallback(object: RssPoller.Callback {
+        override fun onEachPolling(updatedRssReference: RssReference) {
+            println(updatedRssReference.readFromCache()?.size)
+        }
+    })
+    poller.start()
 }

@@ -103,7 +103,6 @@ class RssReference(private var document: Document,
         }
 
         private fun elems2doc(elems: Elements): Document {
-            println(elems.size)
             return Document("").also {
                 it.html(elems.html())
             }
