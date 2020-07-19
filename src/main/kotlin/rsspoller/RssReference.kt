@@ -1,8 +1,9 @@
-package rssfeeder
+package rsspoller
 
 import org.jsoup.nodes.Document
 import org.jsoup.select.Elements
-import rssfeeder.sort.SortStrategy
+import rsspoller.sort.SortStrategy
+import java.util.*
 import kotlin.collections.HashMap
 
 class RssReference(private var document: Document,

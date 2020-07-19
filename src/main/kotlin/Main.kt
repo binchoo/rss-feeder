@@ -1,5 +1,5 @@
 import org.jsoup.nodes.Element
-import rsspoller.RssFeeder
+import rsspoller.RssFeed
 import rsspoller.sort.SortCriterion
 import rsspoller.sort.SortStrategy
 
@@ -12,7 +12,7 @@ fun main() {
 }
 
 fun test1() {
-    val feeder = RssFeeder.getInstance("https://en.wikipedia.org")
+    val feeder = RssFeed.getInstance("https://en.wikipedia.org")
     val ref = feeder.getReference()
     val li_b_a = ref.child("li > b > a")
     li_b_a.elems().forEach {
@@ -39,7 +39,7 @@ fun test1() {
 }
 
 fun test2() {
-    val feeder = RssFeeder.getInstance("https://en.wikipedia.org")
+    val feeder = RssFeed.getInstance("https://en.wikipedia.org")
     val ref = feeder.getReference()
     val li_b_a = ref.child("li > b > a")
     li_b_a.elems().forEach {
@@ -60,7 +60,7 @@ fun test2() {
 }
 
 fun test3() {
-    val feeder = RssFeeder.getInstance("https://en.wikipedia.org")
+    val feeder = RssFeed.getInstance("https://en.wikipedia.org")
     val ref = feeder.getReference()
     var li_b_a_sorted = ref.child("li").sort(SortStrategy.ChildrenCount())
         .child("b").sort(SortStrategy.HtmlLength())
