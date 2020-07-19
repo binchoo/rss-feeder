@@ -3,26 +3,18 @@ package com.corndog.rssfeederrecyclerview.rssfeeder
 import rsspoller.RssReference
 
 class RssPoller(val rssReference: RssReference, var interval: Long) {
-    var isPolling = false
-        private set
 
-    private val pollingThread = Thread {
-        while (isPolling) {
-            rssReference.elems()
-            callback?.onEachPolling(rssReference)
-            Thread.sleep(interval)
-        }
-    }
+    private var pollingThread: PollingThread? = null
     private var callback: Callback? = null
 
     fun start() {
-        isPolling = true
-        pollingThread.start()
+        pollingThread = PollingThread()
+        pollingThread?.start()
     }
 
     fun stop() {
-        isPolling = false
-        pollingThread.interrupt()
+        pollingThread?.interrupt()
+        pollingThread = null
     }
 
     fun addCallback(callback: Callback) {
@@ -33,7 +25,32 @@ class RssPoller(val rssReference: RssReference, var interval: Long) {
         this.interval = interval
     }
 
+    fun isPolling(): Boolean {
+        return pollingThread?.isPolling() ?: false
+    }
+
     interface Callback {
         fun onEachPolling(updatedRssReference: RssReference)
+    }
+
+    inner class PollingThread: Thread() {
+        var mIsPolling = false
+
+        override fun run() {
+            if (!mIsPolling) {
+                mIsPolling = true
+                while (mIsPolling) {
+                    try {
+                        rssReference.elems()
+                        callback?.onEachPolling(rssReference)
+                        sleep(interval)
+                    } catch (e: InterruptedException) {
+                        mIsPolling = false
+                    }
+                }
+            }
+        }
+
+        fun isPolling() = mIsPolling
     }
 }

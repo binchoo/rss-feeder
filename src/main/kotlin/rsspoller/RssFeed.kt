@@ -17,6 +17,7 @@ class RssFeed private constructor(val document: Document) {
         return rssReference
     }
 
+    //TODO: fatal: lazify document connection!
     companion object {
         fun getInstanceAsync(urlstr: String, callback: ((RssFeed)->Unit)) {
             return getInstanceAsync(Jsoup.connect(urlstr), callback)

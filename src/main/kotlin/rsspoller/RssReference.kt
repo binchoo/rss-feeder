@@ -51,6 +51,7 @@ class RssReference(private var document: Document,
      * @return Elements, read from cache if forceEval=false, else newly evaluated.
      * @author binchoo
      */
+    @Synchronized
     fun elems(forceEval: Boolean = true): Elements {
         return evaluateQueue(evalQueue, forceEval)
     }
