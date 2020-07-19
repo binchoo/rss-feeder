@@ -1,6 +1,6 @@
-package rssfeeder.recyclerview
+package rsspoller.recyclerview
 
-import rssfeeder.RssReference
+import rsspoller.RssReference
 import java.lang.NullPointerException
 
 class RssFeederRecyclerViewOptions private constructor(val reference: RssReference) {

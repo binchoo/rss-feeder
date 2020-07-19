@@ -3,7 +3,6 @@ package rssfeeder
 import org.jsoup.nodes.Document
 import org.jsoup.select.Elements
 import rssfeeder.sort.SortStrategy
-import java.util.*
 import kotlin.collections.HashMap
 
 class RssReference(private var document: Document,
@@ -74,8 +73,11 @@ class RssReference(private var document: Document,
         elementsCache.put(cssQuery, elems)
     }
 
-    private fun readFromCache() =
-        elementsCache[cssQuery]!!
+    fun readFromCache() =
+        elementsCache[cssQuery]
+
+    private fun readFromCacheNotNull() =
+        readFromCache()!!
 
     companion object {
         private val QUERY_DEFAULT = ""
@@ -90,16 +92,17 @@ class RssReference(private var document: Document,
                     subDocument = elems2doc(evaluateReference(ref, forceEval))
                 }
             }
-            return last.readFromCache()
+            return last.readFromCacheNotNull()
         }
 
         private fun evaluateReference(ref: RssReference, forceEval: Boolean): Elements {
             if (!ref.isEvaluated() || forceEval)
                 ref.writeToCache()
-            return ref.readFromCache()
+            return ref.readFromCacheNotNull()
         }
 
         private fun elems2doc(elems: Elements): Document {
+            println(elems.size)
             return Document("").also {
                 it.html(elems.html())
             }

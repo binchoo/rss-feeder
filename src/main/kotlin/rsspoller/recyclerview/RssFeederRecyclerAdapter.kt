@@ -1,4 +1,4 @@
-package rssfeeder.recyclerview
+package rsspoller.recyclerview
 
 open class RssFeederRecyclerAdapter(val options: RssFeederRecyclerViewOptions) {
 

@@ -1,4 +1,4 @@
-package rssfeeder
+package rsspoller
 
 import org.jsoup.Connection
 import org.jsoup.Jsoup

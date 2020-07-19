@@ -1,4 +1,4 @@
-package rssfeeder.sort
+package rsspoller.sort
 
 import org.jsoup.nodes.Element
 import org.jsoup.select.Elements

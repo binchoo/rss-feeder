@@ -1,7 +1,7 @@
 import org.jsoup.nodes.Element
-import rssfeeder.RssFeeder
-import rssfeeder.sort.SortCriterion
-import rssfeeder.sort.SortStrategy
+import rsspoller.RssFeeder
+import rsspoller.sort.SortCriterion
+import rsspoller.sort.SortStrategy
 
 fun main() {
     test1()
