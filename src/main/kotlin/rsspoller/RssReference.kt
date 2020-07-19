@@ -12,6 +12,7 @@ class RssReference(private var connection: Connection,
     constructor(connection: Connection): this(connection, QUERY_DEFAULT, null)
     constructor(connection: Connection, cssQuery: String): this(connection, cssQuery, null)
 
+    private lateinit var document: Document //only the first reference can possess a late-initialized document.
     var sortStrategy: SortStrategy<*>? = null
         private set
 
@@ -43,36 +44,40 @@ class RssReference(private var connection: Connection,
      * @author binchoo
      */
     fun elems(forceEval: Boolean = true): Elements {
-        evaluate(forceEval)
-        return readCacheNonNull()
+        evaluate(forceEval, this)
+        return cachedElementsNonNull()
     }
 
     @Synchronized
-    fun evaluate(forceEval: Boolean) {
+    fun evaluate(forceEval: Boolean, initiator: RssReference) {
         if (!isEvaluated() || forceEval) {
-            parseMyDocument(
-                if (parent == null) {
-                    lazyConnection()
-                } else {
-                    parent.evaluate(forceEval)
-                    parent.asDocument()
-            })
+            val myDocument = if (parent == null) {
+                lazyConnection()
+            } else {
+                parent.evaluate(forceEval, initiator)
+                parent.asDocument()
+            }
+
+            if (this == initiator || parent == null || hasSortStrategy())
+                parseMyDocument(myDocument)
         }
     }
 
     fun lazyConnection(): Document {
-        return connection.get()
+        document = connection.get()
+        return document
     }
 
     private fun asDocument(): Document {
-        return Document("").also {
-            it.html(readCacheNonNull().html())
+        return if (isFirstReference())
+            document
+        else Document("").also {document->
+            document.html(cachedElementsNonNull().html())
         }
     }
 
     private fun parseMyDocument(document: Document) {
-        val elems =
-            if (isQuerySpecified())
+        val elems = if (isQuerySpecified())
                 document.select(cssQuery)
             else
                 document.allElements
@@ -80,17 +85,20 @@ class RssReference(private var connection: Connection,
         elementsCache.put(cssQuery, elems)
     }
 
-    fun readFromCache() =
+    fun cachedElements() =
         elementsCache[cssQuery]
 
-    private fun readCacheNonNull() =
-        readFromCache()!!
+    private fun cachedElementsNonNull() =
+        cachedElements()!!
+
+    fun isEvaluated(): Boolean =
+        elementsCache[cssQuery] != null
 
     fun isQuerySpecified(): Boolean =
         !cssQuery.equals(QUERY_DEFAULT)
 
-    fun isEvaluated(): Boolean =
-        elementsCache[cssQuery] != null
+    fun isFirstReference(): Boolean =
+        parent == null
 
     fun hasSortStrategy(): Boolean =
         sortStrategy != null
