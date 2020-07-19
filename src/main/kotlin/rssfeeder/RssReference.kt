@@ -7,7 +7,7 @@ import java.util.*
 import kotlin.collections.HashMap
 
 class RssReference(private var document: Document,
-                   private var cssQuery: String, parent: RssReference?) {
+                   private val cssQuery: String, val parent: RssReference?) {
 
     constructor(document: Document): this(document, QUERY_DEFAULT, null)
     constructor(document: Document, cssQuery: String): this(document, cssQuery, null)
