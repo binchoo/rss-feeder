@@ -12,15 +12,6 @@ class RssReference(private var connection: Connection,
     constructor(connection: Connection): this(connection, QUERY_DEFAULT, null)
     constructor(connection: Connection, cssQuery: String): this(connection, cssQuery, null)
 
-//    private var evalQueue: LinkedList<RssReference> =
-//        if (parent == null) {
-//            LinkedList()
-//        } else {
-//            parent.evalQueue.clone() as LinkedList<RssReference>
-//        }.also {evalQueue->
-//            evalQueue.add(this)
-//        }
-
     var sortStrategy: SortStrategy<*>? = null
         private set
 
