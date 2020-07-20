@@ -6,13 +6,12 @@ import org.jsoup.select.Elements
 import rsspoller.sort.SortStrategy
 import kotlin.collections.HashMap
 
-class RssReference(private var connection: Connection,
+open class RssReference(protected var connection: Connection,
                    private val cssQuery: String, val parent: RssReference?) {
 
     constructor(connection: Connection): this(connection, QUERY_EMPTY, null)
     constructor(connection: Connection, cssQuery: String): this(connection, cssQuery, null)
 
-    private lateinit var document: Document //only the first reference can possess a late-initialized document.
     var sortStrategy: SortStrategy<*>? = null
         private set
 
@@ -49,34 +48,21 @@ class RssReference(private var connection: Connection,
     }
 
     @Synchronized
-    fun evaluate(forceEval: Boolean, initiator: RssReference) {
+    protected open fun evaluate(forceEval: Boolean, initiator: RssReference) {
         if (!isEvaluated() || forceEval) {
-            val myDocument = if (isFirstReference()) {
-                lazyConnection()
-            } else {
                 parent!!.evaluate(forceEval, initiator)
-                parent.asDocument()
-            }
-
-            if (this == initiator || isFirstReference() || hasSortStrategy())
-                parseMyDocument(myDocument)
+            if (this == initiator || hasSortStrategy())
+                queryDocument(parent.asDocument())
         }
     }
 
-    private fun lazyConnection(): Document {
-        document = connection.get()
-        return document
-    }
-
-    private fun asDocument(): Document {
-        return if (isFirstReference())
-            document
-        else Document("").also {document->
+    protected open fun asDocument(): Document {
+        return Document("").also {document->
             document.html(cachedElementsNonNull().html())
         }
     }
 
-    private fun parseMyDocument(document: Document) {
+    protected fun queryDocument(document: Document) {
         val elems = if (isQuerySpecified())
                 document.select(cssQuery)
             else
@@ -97,13 +83,10 @@ class RssReference(private var connection: Connection,
     fun isQuerySpecified(): Boolean =
         !cssQuery.equals(QUERY_EMPTY)
 
-    fun isFirstReference(): Boolean =
-        parent == null
-
     fun hasSortStrategy(): Boolean =
         sortStrategy != null
 
     companion object {
-        private val QUERY_EMPTY = ""
+        val QUERY_EMPTY = ""
     }
 }
