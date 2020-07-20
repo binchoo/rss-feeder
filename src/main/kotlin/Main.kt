@@ -104,6 +104,6 @@ fun issue() {
     val feed = RssFeed.getInstance("https://binchoo.tistory.com/rss")
     val ref = feed.getReference().child("item > title").sort(SortStrategy.TextLength())
     ref.elems().forEach {
-        println(it)
+        println(it.text())
     }
 }
