@@ -7,9 +7,9 @@ import kotlin.collections.HashMap
 
 abstract class RssReference(private val cssQuery: String, val parent: RssReference?=null) {
     lateinit var document: Document
+    private var elementsCache: HashMap<String, Elements> = HashMap()
     var sortStrategy: SortStrategy<*>? = null
         private set
-    private var elementsCache: HashMap<String, Elements> = HashMap()
 
     /**
      * @param forceEval whether or not to force the lazy evaluation. Default true.
@@ -17,18 +17,27 @@ abstract class RssReference(private val cssQuery: String, val parent: RssReferen
      * @author binchoo
      */
     fun elems(forceEval: Boolean = true): Elements {
-        evaluate(forceEval, this)
+        if (!isEvaluated() || forceEval)
+            evaluate(this)
         return cachedElementsNonNull()
     }
 
     @Synchronized
-    fun evaluate(forceEval: Boolean = true, initiator: RssReference)  {
-        if (!isEvaluated() || forceEval) {
-            parent?.evaluate(true, initiator)
-            document = targetDocument()
-            if (this == initiator || hasSortStrategy())
-                documentSelection()
-        }
+    fun evaluate(initiator: RssReference)  {
+        parent?.evaluate(initiator)
+        document = targetDocument()
+        if (this == initiator || hasSortStrategy())
+            documentSelection(document)
+    }
+
+    private fun documentSelection(document: Document) {
+        val elems =
+            if (isQuerySpecified())
+                document.select(cssQuery)
+            else
+                document.allElements
+        sortStrategy?.sort(elems)
+        elementsCache.put(cssQuery, elems)
     }
 
     protected abstract fun targetDocument(): Document
@@ -48,16 +57,6 @@ abstract class RssReference(private val cssQuery: String, val parent: RssReferen
     protected fun queryForChild(cssQuery: String): String {
         return if (hasSortStrategy() || !isQuerySpecified()) cssQuery
         else "${this.cssQuery} > $cssQuery"
-    }
-
-    protected fun documentSelection() {
-        val elems =
-            if (isQuerySpecified())
-                document.select(cssQuery)
-            else
-                document.allElements
-        sortStrategy?.sort(elems)
-        elementsCache.put(cssQuery, elems)
     }
 
     fun cachedElements() =
