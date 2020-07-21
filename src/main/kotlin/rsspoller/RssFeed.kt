@@ -2,7 +2,6 @@ package rsspoller
 
 import org.jsoup.Connection
 import org.jsoup.Jsoup
-import rsspoller.sort.RootReference
 
 class RssFeed private constructor(private val connection: Connection) {
     private lateinit var rssReference: RssReference
