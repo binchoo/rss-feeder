@@ -1,41 +1,15 @@
 package rsspoller
 
 import org.jsoup.nodes.Document
-import org.jsoup.Connection
 import org.jsoup.select.Elements
 import rsspoller.sort.SortStrategy
 import kotlin.collections.HashMap
 
-open class RssReference(protected var connection: Connection,
-                   private val cssQuery: String, val parent: RssReference?) {
-
-    constructor(connection: Connection): this(connection, QUERY_EMPTY, null)
-    constructor(connection: Connection, cssQuery: String): this(connection, cssQuery, null)
-
+abstract class RssReference(private val cssQuery: String, val parent: RssReference?=null) {
+    lateinit var document: Document
     var sortStrategy: SortStrategy<*>? = null
         private set
-
     private var elementsCache: HashMap<String, Elements> = HashMap()
-
-    fun child(cssQuery: String): RssReference {
-        val childCssQuery = concatQuery(cssQuery)
-        return RssReference(connection, childCssQuery, this)
-    }
-
-    private fun concatQuery(cssQuery: String): String {
-        return if (hasSortStrategy() || !isQuerySpecified()) cssQuery
-        else "${this.cssQuery} > $cssQuery"
-    }
-
-    fun sort(sortStrategy: SortStrategy<*>): RssReference {
-        this.sortStrategy = sortStrategy
-        return this
-    }
-
-    fun noSort(): RssReference {
-        this.sortStrategy = null
-        return this
-    }
 
     /**
      * @param forceEval whether or not to force the lazy evaluation. Default true.
@@ -48,22 +22,37 @@ open class RssReference(protected var connection: Connection,
     }
 
     @Synchronized
-    protected open fun evaluate(forceEval: Boolean, initiator: RssReference) {
+    fun evaluate(forceEval: Boolean = true, initiator: RssReference)  {
         if (!isEvaluated() || forceEval) {
-                parent!!.evaluate(forceEval, initiator)
+            parent?.evaluate(true, initiator)
+            document = targetDocument()
             if (this == initiator || hasSortStrategy())
-                queryDocument(parent.asDocument())
+                documentSelection()
         }
     }
 
-    protected open fun asDocument(): Document {
-        return Document("").also {document->
-            document.html(cachedElementsNonNull().html())
-        }
+    protected abstract fun targetDocument(): Document
+
+    fun sort(sortStrategy: SortStrategy<*>): RssReference {
+        this.sortStrategy = sortStrategy
+        return this
     }
 
-    protected fun queryDocument(document: Document) {
-        val elems = if (isQuerySpecified())
+    fun noSort(): RssReference {
+        this.sortStrategy = null
+        return this
+    }
+
+    abstract fun child(cssQuery: String): RssReference
+
+    protected fun queryForChild(cssQuery: String): String {
+        return if (hasSortStrategy() || !isQuerySpecified()) cssQuery
+        else "${this.cssQuery} > $cssQuery"
+    }
+
+    protected fun documentSelection() {
+        val elems =
+            if (isQuerySpecified())
                 document.select(cssQuery)
             else
                 document.allElements
@@ -74,7 +63,7 @@ open class RssReference(protected var connection: Connection,
     fun cachedElements() =
         elementsCache[cssQuery]
 
-    private fun cachedElementsNonNull() =
+    protected fun cachedElementsNonNull() =
         cachedElements()!!
 
     fun isEvaluated(): Boolean =

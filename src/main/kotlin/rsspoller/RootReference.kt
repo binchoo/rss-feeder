@@ -2,28 +2,16 @@ package rsspoller
 
 import org.jsoup.Connection
 import org.jsoup.nodes.Document
-import rsspoller.RssReference
 
-class RootReference(connection: Connection, cssQuery: String)
-    : RssReference(connection, cssQuery, null) {
+class RootReference(private val connection: Connection, cssQuery: String=QUERY_EMPTY)
+    : RssReference(cssQuery) {
 
-    constructor(connection: Connection): this(connection, QUERY_EMPTY)
-
-    private lateinit var document: Document //only the first reference can possess a late-initialized document.
-
-    override fun evaluate(forceEval: Boolean, initiator: RssReference) {
-        if (!isEvaluated() || forceEval)
-            lazyConnection()
-            if (this == initiator || hasSortStrategy())
-                queryDocument(document)
+    override fun child(cssQuery: String): RssReference {
+        val childCssQuery = queryForChild(cssQuery)
+        return ChildReference(childCssQuery, this)
     }
 
-    private fun lazyConnection(): Document {
-        document = connection.get()
-        return document
-    }
-
-    override fun asDocument(): Document {
-        return document
+    override fun targetDocument(): Document {
+        return connection.get()
     }
 }
