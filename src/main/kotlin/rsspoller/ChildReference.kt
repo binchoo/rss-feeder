@@ -10,7 +10,7 @@ class ChildReference(cssQuery: String, parent: RssReference)
         return ChildReference(childCssQuery, this)
     }
 
-    override fun targetDocument(): Document {
+    override fun getTargetDocument(): Document {
         return parent!!.document
     }
 }

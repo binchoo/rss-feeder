@@ -25,7 +25,7 @@ abstract class RssReference(private val cssQuery: String, val parent: RssReferen
     @Synchronized
     fun evaluate(initiator: RssReference)  {
         parent?.evaluate(initiator)
-        document = targetDocument()
+        document = getTargetDocument()
         if (this == initiator || hasSortStrategy())
             documentSelection(document)
     }
@@ -40,7 +40,7 @@ abstract class RssReference(private val cssQuery: String, val parent: RssReferen
         elementsCache.put(cssQuery, elems)
     }
 
-    protected abstract fun targetDocument(): Document
+    protected abstract fun getTargetDocument(): Document
 
     fun sort(sortStrategy: SortStrategy<*>): RssReference {
         this.sortStrategy = sortStrategy

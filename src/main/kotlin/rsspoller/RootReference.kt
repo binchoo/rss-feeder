@@ -11,7 +11,7 @@ class RootReference(private val connection: Connection, cssQuery: String=QUERY_E
         return ChildReference(childCssQuery, this)
     }
 
-    override fun targetDocument(): Document {
+    override fun getTargetDocument(): Document {
         return connection.get()
     }
 }
