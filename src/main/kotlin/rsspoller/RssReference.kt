@@ -27,15 +27,17 @@ abstract class RssReference(private val cssQuery: String, val parent: RssReferen
         parent?.evaluate(initiator)
         document = getTargetDocument()
         if (this == initiator || hasSortStrategy())
-            documentSelection(document)
+            sortAndPush(documentSelection(document))
     }
 
-    private fun documentSelection(document: Document) {
-        val elems =
-            if (isQuerySpecified())
-                document.select(cssQuery)
-            else
-                document.allElements
+    private fun documentSelection(document: Document): Elements {
+        return if (isQuerySpecified())
+            document.select(cssQuery)
+        else
+            document.allElements
+    }
+
+    private fun sortAndPush(elems: Elements) {
         sortStrategy?.sort(elems)
         elementsCache.put(cssQuery, elems)
     }
